@@ -8,10 +8,10 @@ namespace SB.UI
     {
         public string Name;
 
-        public List<int> TransitionNodes = new List<int>();
-
-        public List<int> ElementIdsList = new List<int>();
-
         public bool IsStartNode;
+
+        public List<string> TransitionNodes = new List<string>();
+
+        public List<string> ElementIdsList = new List<string>();
     }
 }

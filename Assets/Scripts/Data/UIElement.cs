@@ -6,6 +6,6 @@
 
         public UIAsset Asset;
 
-        public bool Precaching;
+        public bool Precache;
     }
 }
