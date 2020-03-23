@@ -65,7 +65,6 @@ namespace SB.UI
             InstantiateViews(list, _canvasForPrecaching, (id, gameObject) =>
             {
                 gameObject.SetActive(false);
-                Debug.LogError("Caching " + id);
                 _precachedViews.Add(id, gameObject);
             }, () =>
             {
