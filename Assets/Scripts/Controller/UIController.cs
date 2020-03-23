@@ -1,33 +1,29 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 namespace SB.UI
 {
-    public class UIController
+    public class UIController : IUIController
     {
-        private Dictionary<string, UISceneGraph> _sceneGraphs;
+        private UISceneList _sceneList;
 
         private UISceneGraph _currentGraph;
 
         private UIScreenNode _currentScreen;
 
-        private IIVViewHandler _viewHandler;
+        private IViewHandler _viewHandler;
 
         private bool _precachingUIElements;
 
-        private bool _changingScreen;
-
-        public UIController(Dictionary<string, UISceneGraph> sceneGraphs, IIVViewHandler viewHandler)
+        public void Initialize(UISceneList sceneList, IViewHandler viewHandler)
         {
-            _sceneGraphs = sceneGraphs;
+            _sceneList = sceneList;
             _viewHandler = viewHandler;
         }
 
         public void ChangeSceneGraph(string sceneName)
         {
-            if (!_sceneGraphs.TryGetValue(sceneName, out UISceneGraph graph))
+            if (!_sceneList.SceneGraphs.TryGetValue(sceneName, out UISceneGraph graph))
             {
                 Debug.LogError($"There is no graph for {sceneName} scene.");
                 return;
@@ -52,7 +48,7 @@ namespace SB.UI
 
         public void RequestScreen(string screenName)
         {
-            if (_changingScreen || _currentScreen.Name == screenName)
+            if (_currentScreen != null && _currentScreen.Name == screenName)
             {
                 return;
             }
@@ -64,11 +60,9 @@ namespace SB.UI
                 return;
             }
             
-            _changingScreen = true;
             List<UIElement> elements = _currentGraph.GetUIElements(screen);
-            _viewHandler.TransitionScreen(elements, () =>
+            _viewHandler.TransitionScreen(screen.Layer, elements, () =>
             {
-                _changingScreen = false;
                 _currentScreen = _currentGraph.GetScreenNode(screenName);
             });
         }

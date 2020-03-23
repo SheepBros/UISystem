@@ -1,24 +1,25 @@
 ﻿using System;
-using System.IO;
 using System.Collections.Generic;
 using Newtonsoft.Json;
-using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace SB.UI
 {
     [Serializable]
     public class UISceneGraph
     {
-        public string SceneName { get; private set; }
+        public string SceneName { get; set; }
 
-        public string StartScreenId { get; private set; }
+        public string StartScreenId { get; set; }
 
-        public List<UIScreenNode> ScreenNodes { get; private set; } = new List<UIScreenNode>();
+        public List<UIScreenNode> ScreenNodes { get; set; }
 
-        public Dictionary<string, UIElement> UIElements { get; private set; } = new Dictionary<string, UIElement>();
+        public Dictionary<string, UIElement> UIElements { get; set; }
 
         private Dictionary<string, List<UIElement>> _cachedUIElementsForScreen = new Dictionary<string, List<UIElement>>();
+
+        public UISceneGraph()
+        {
+        }
 
         [JsonConstructor]
         public UISceneGraph(string sceneName, string startScreenId,
@@ -71,16 +72,6 @@ namespace SB.UI
 
             _cachedUIElementsForScreen.Add(node.Name, list);
             return list;
-        }
-
-        public void Save()
-        {
-            const string FileNameWitnFolder = "/Resources/UISceneGraph.json";
-            string serilizedData = JsonConvert.SerializeObject(this);
-            using (StreamWriter textWriter = new StreamWriter(Application.dataPath + FileNameWitnFolder, false))
-            {
-                textWriter.Write(serilizedData);
-            }
         }
     }
 }

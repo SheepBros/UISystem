@@ -4,9 +4,15 @@ namespace SB
 {
     public class UIAsset : IEquatable<UIAsset>
     {
-        public string Bundle;
+        public string Bundle { get; private set; }
 
-        public string Name;
+        public string Name { get; private set; }
+
+        public UIAsset(string bundle, string name)
+        {
+            Bundle = bundle;
+            Name = name;
+        }
 
         public override int GetHashCode()
         {

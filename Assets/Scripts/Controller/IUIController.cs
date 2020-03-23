@@ -2,7 +2,7 @@
 {
     public interface IUIController
     {
-        void ChangeScene(string sceneName);
+        void ChangeSceneGraph(string sceneName);
 
         void RequestScreen(string screenName);
     }

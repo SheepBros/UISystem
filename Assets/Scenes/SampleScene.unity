@@ -374,31 +374,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: UISystem
       objectReference: {fileID: 0}
-    - target: {fileID: 855143137683510460, guid: 97f95463a8c434d89aababe17f055823,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1043373098249908174, guid: 97f95463a8c434d89aababe17f055823,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 2314970591413602730, guid: 97f95463a8c434d89aababe17f055823,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 2842279389132774662, guid: 97f95463a8c434d89aababe17f055823,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 5099917325258293490, guid: 97f95463a8c434d89aababe17f055823,
-        type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 7688873373844664544, guid: 97f95463a8c434d89aababe17f055823,
         type: 3}
       propertyPath: m_LocalPosition.x

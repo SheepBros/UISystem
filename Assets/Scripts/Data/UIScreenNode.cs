@@ -8,6 +8,8 @@ namespace SB.UI
     {
         public string Name;
 
+        public int Layer;
+
         public bool IsStartNode;
 
         public List<string> TransitionNodes = new List<string>();
