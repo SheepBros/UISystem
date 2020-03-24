@@ -15,13 +15,13 @@ namespace SB.UI
         [SerializeField]
         private List<GameObject> _layers;
 
-        private IUIAssetManager _assetManager;
+        protected IUIAssetManager _assetManager;
 
-        private readonly Dictionary<string, GameObject> _precachedViews = new Dictionary<string, GameObject>();
+        private readonly Dictionary<UIElement, GameObject> _precachedViews = new Dictionary<UIElement, GameObject>();
 
-        private readonly Dictionary<int, Dictionary<string, GameObject>> _currentViews = new Dictionary<int, Dictionary<string, GameObject>>();
+        private readonly Dictionary<int, Dictionary<UIElement, GameObject>> _currentViews = new Dictionary<int, Dictionary<UIElement, GameObject>>();
 
-        private Dictionary<string, GameObject> _nextViews = new Dictionary<string, GameObject>();
+        private Dictionary<UIElement, GameObject> _nextViews = new Dictionary<UIElement, GameObject>();
 
         private bool _precaching;
 
@@ -56,7 +56,7 @@ namespace SB.UI
             List<UIElement> list = new List<UIElement>();
             foreach (var pair in sceneGraph.UIElements)
             {
-                if (pair.Value.Precache && !_precachedViews.ContainsKey(pair.Value.Id))
+                if (pair.Value.Precache && !_precachedViews.ContainsKey(pair.Value))
                 {
                     list.Add(pair.Value);
                 }
@@ -71,6 +71,45 @@ namespace SB.UI
                 _precaching = false;
                 uiElementsPrecached?.Invoke();
             });
+        }
+
+        public void ClearCachedViews(List<UIElement> exceptions)
+        {
+            List<UIElement> viewsToDestroy = new List<UIElement>();
+            foreach (var pair in _precachedViews)
+            {
+                if (!exceptions.Contains(pair.Key))
+                {
+                    viewsToDestroy.Add(pair.Key);
+                }
+            }
+
+            for (int i = 0; i < viewsToDestroy.Count; ++i)
+            {
+                UIElement viewToDestroy = viewsToDestroy[i];
+                Destroy(_precachedViews[viewsToDestroy[i]]);
+                _precachedViews.Remove(viewToDestroy);
+            }
+
+            foreach (var layerPair in _currentViews)
+            {
+                foreach (var viewPair in layerPair.Value)
+                {
+                    if (_precachedViews.ContainsKey(viewPair.Key))
+                    {
+                        viewPair.Value.SetActive(false);
+                        viewPair.Value.transform.SetParent(_canvasForPrecaching);
+                    }
+                    else
+                    {
+                        Destroy(viewPair.Value);
+                    }
+                }
+
+                layerPair.Value.Clear();
+            }
+
+            _currentViews.Clear();
         }
 
         public void TransitionScreen(int layer, List<UIElement> elements, Action screenChanged)
@@ -88,6 +127,17 @@ namespace SB.UI
             _transitionCoroutine = StartCoroutine(TransitionScreenCoroutine(layer, elements, finished));
         }
 
+        protected virtual void InstantiateView(UIElement element, Transform parent, Action<GameObject> callback)
+        {
+            _assetManager.LoadAssetAsync<GameObject>(element.Asset, (asset) =>
+            {
+                GameObject viewObject = Instantiate(asset, parent);
+                Transform viewTransform = viewObject.transform;
+                viewTransform.Identify();
+                callback?.Invoke(viewObject);
+            });
+        }
+
         private IEnumerator TransitionScreenCoroutine(int layer, List<UIElement> elements, Action screenChanged)
         {
             int highestLayer = GetCurrentHighestLayer();
@@ -100,7 +150,7 @@ namespace SB.UI
 
             yield return EnableNextViews(layer);
 
-            DisableUpperLayer();
+            DisableUnusedLayer();
 
             screenChanged?.Invoke();
         }
@@ -108,7 +158,7 @@ namespace SB.UI
         private IEnumerator DisableCurrentViews(int layer, List<UIElement> exceptions)
         {
             bool exitAnimationFinished = false;
-            if (!_currentViews.TryGetValue(layer, out Dictionary<string, GameObject> views))
+            if (!_currentViews.TryGetValue(layer, out Dictionary<UIElement, GameObject> views))
             {
                 yield break;
             }
@@ -116,12 +166,7 @@ namespace SB.UI
             List<GameObject> list = new List<GameObject>();
             foreach (var pair in views)
             {
-                UIElement foundItem = exceptions.Find(item =>
-                {
-                    return item.Id == pair.Key;
-                });
-
-                if (foundItem == null)
+                if (!exceptions.Contains(pair.Key))
                 {
                     list.Add(pair.Value);
                 }
@@ -178,9 +223,9 @@ namespace SB.UI
 
         private IEnumerator EnableNextViews(int layer)
         {
-            if (!_currentViews.TryGetValue(layer, out Dictionary<string, GameObject> views))
+            if (!_currentViews.TryGetValue(layer, out Dictionary<UIElement, GameObject> views))
             {
-                views = new Dictionary<string, GameObject>();
+                views = new Dictionary<UIElement, GameObject>();
                 _currentViews.Add(layer, views);
                 _layers[layer].SetActive(true);
             }
@@ -204,7 +249,7 @@ namespace SB.UI
             _nextViews.Clear();
 
             bool enterAnimationFinished = false;
-            DoEnterAnimation(new List<GameObject>(_nextViews.Values), () =>
+            DoEnterAnimation(new List<GameObject>(views.Values), () =>
             {
                 enterAnimationFinished = true;
             });
@@ -287,7 +332,7 @@ namespace SB.UI
             }
         }
 
-        private void InstantiateViews(List<UIElement> list, Transform parent, Action<string, GameObject> instatiated, Action finished)
+        private void InstantiateViews(List<UIElement> list, Transform parent, Action<UIElement, GameObject> instatiated, Action finished)
         {
             if (list.Count == 0)
             {
@@ -297,30 +342,21 @@ namespace SB.UI
 
             UIElement element = list[0];
             list.RemoveAt(0);
-            InstantiateView(element, parent, (viewObject) =>
+            Action<GameObject> callback = (viewObject) =>
             {
-                instatiated?.Invoke(element.Id, viewObject);
+                instatiated?.Invoke(element, viewObject);
                 InstantiateViews(list, parent, instatiated, finished);
-            });
-        }
+            };
 
-        private void InstantiateView(UIElement element, Transform parent, Action<GameObject> callback)
-        {
-            if (_precachedViews.TryGetValue(element.Id, out GameObject cachedView))
+            if (_precachedViews.TryGetValue(element, out GameObject cachedView))
             {
                 Transform viewTransform = cachedView.transform;
                 viewTransform.Identify();
-                callback?.Invoke(cachedView);
+                callback(viewTransform.gameObject);
                 return;
             }
 
-            _assetManager.LoadAssetAsync<GameObject>(element.Asset, (asset) =>
-            {
-                GameObject viewObject = Instantiate(asset, parent);
-                Transform viewTransform = viewObject.transform;
-                viewTransform.Identify();
-                callback?.Invoke(viewObject);
-            });
+            InstantiateView(element, parent, callback);
         }
 
         private int GetCurrentHighestLayer()
@@ -334,7 +370,7 @@ namespace SB.UI
             return highestValue;
         }
 
-        private void DisableUpperLayer()
+        private void DisableUnusedLayer()
         {
             for (int i = 0; i < _layers.Count; ++i)
             {

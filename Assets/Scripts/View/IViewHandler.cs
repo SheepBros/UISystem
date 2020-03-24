@@ -7,6 +7,8 @@ namespace SB.UI
     {
         void PrecacheViews(UISceneGraph sceneGraph, Action uiElementsPrecached);
 
+        void ClearCachedViews(List<UIElement> exceptions);
+
         void TransitionScreen(int layer, List<UIElement> elements, Action screenChanged);
     }
 }

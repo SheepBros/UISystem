@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Newtonsoft.Json;
 
 namespace SB.UI
 {
@@ -16,20 +15,6 @@ namespace SB.UI
         public Dictionary<string, UIElement> UIElements { get; set; }
 
         private Dictionary<string, List<UIElement>> _cachedUIElementsForScreen = new Dictionary<string, List<UIElement>>();
-
-        public UISceneGraph()
-        {
-        }
-
-        [JsonConstructor]
-        public UISceneGraph(string sceneName, string startScreenId,
-            List<UIScreenNode> screenNodes, Dictionary<string, UIElement> uiElements)
-        {
-            SceneName = sceneName;
-            StartScreenId = startScreenId;
-            ScreenNodes = screenNodes;
-            UIElements = uiElements;
-        }
 
         public void SetStartNode(string startScreenId)
         {

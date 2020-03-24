@@ -7,5 +7,7 @@ namespace SB.UI
         void LoadAssetAsync<T>(UIAsset definition, Action<T> loaded) where T : UnityEngine.Object;
 
         bool IsLoad(UIAsset definition);
+
+        void UnloadAsset(UIAsset asset);
     }
 }

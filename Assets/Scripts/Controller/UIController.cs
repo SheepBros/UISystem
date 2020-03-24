@@ -1,28 +1,45 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace SB.UI
 {
     public class UIController : IUIController
     {
+        private IViewHandler _viewHandler;
+
         private UISceneList _sceneList;
 
         private UISceneGraph _currentGraph;
 
         private UIScreenNode _currentScreen;
 
-        private IViewHandler _viewHandler;
-
         private bool _precachingUIElements;
 
-        public void Initialize(UISceneList sceneList, IViewHandler viewHandler)
+        private bool _initialized;
+
+        public UIController(IViewHandler viewHandler)
         {
-            _sceneList = sceneList;
             _viewHandler = viewHandler;
+        }
+
+        public void Load(Action loaded)
+        {
+            UIDataIOUtil.Load((data) =>
+            {
+                _sceneList = data;
+                _initialized = true;
+                loaded?.Invoke();
+            });
         }
 
         public void ChangeSceneGraph(string sceneName)
         {
+            if (!_initialized)
+            {
+                return;
+            }
+
             if (!_sceneList.SceneGraphs.TryGetValue(sceneName, out UISceneGraph graph))
             {
                 Debug.LogError($"There is no graph for {sceneName} scene.");
@@ -34,6 +51,8 @@ namespace SB.UI
                 Debug.LogWarning($"{sceneName} scene is already precaching.");
                 return;
             }
+
+            ClearPrecachedViews(graph);
 
             _currentGraph = graph;
             _precachingUIElements = true;
@@ -48,6 +67,11 @@ namespace SB.UI
 
         public void RequestScreen(string screenName)
         {
+            if (!_initialized)
+            {
+                return;
+            }
+
             if (_currentScreen != null && _currentScreen.Name == screenName)
             {
                 return;
@@ -65,6 +89,25 @@ namespace SB.UI
             {
                 _currentScreen = _currentGraph.GetScreenNode(screenName);
             });
+        }
+
+        private void ClearPrecachedViews(UISceneGraph newSceneGraph)
+        {
+            if (_currentGraph == null)
+            {
+                return;
+            }
+
+            List<UIElement> exceptions = new List<UIElement>();
+            foreach (var pair in _currentGraph.UIElements)
+            {
+                if (newSceneGraph.UIElements.ContainsKey(pair.Key))
+                {
+                    exceptions.Add(pair.Value);
+                }
+            }
+
+            _viewHandler.ClearCachedViews(exceptions);
         }
     }
 }
