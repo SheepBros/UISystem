@@ -12,6 +12,8 @@ namespace SB.UI
 
         public bool IsStartNode;
 
+        public string BackTransitionNode;
+
         public List<string> TransitionNodes;
 
         public List<string> ElementIdsList;
