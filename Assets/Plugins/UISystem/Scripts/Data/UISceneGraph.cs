@@ -8,7 +8,7 @@ namespace SB.UI
     {
         public string SceneName { get; set; }
 
-        public string StartScreenId { get; set; }
+        public string StartScreenNodeId { get; set; }
 
         public List<UIScreenNode> ScreenNodes { get; set; }
 

@@ -2,11 +2,11 @@
 
 namespace SB.UI
 {
-    public static class TransformExtension
+    public static class RectTransformExtension
     {
-        public static void Identify(this Transform transform)
+        public static void Identify(this RectTransform transform)
         {
-            transform.localPosition = Vector3.zero;
+            transform.anchoredPosition = Vector3.zero;
             transform.localScale = Vector3.one;
             transform.localRotation = Quaternion.identity;
         }

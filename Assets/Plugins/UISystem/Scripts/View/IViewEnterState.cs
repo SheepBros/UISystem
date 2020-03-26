@@ -2,6 +2,6 @@
 {
     public interface IViewEnterState
     {
-        void EnterState();
+        void EnterState(object args);
     }
 }
