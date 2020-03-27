@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using SB.Async;
 
 namespace SB.UI
 {
@@ -25,134 +26,131 @@ namespace SB.UI
             _viewHandler = viewHandler;
         }
 
-        public void Load(Action loaded)
+        public IPromise Load()
         {
+            Promise promise = new Promise();
             UIDataIOUtil.Load((data) =>
             {
                 _sceneList = data;
                 _initialized = true;
-                loaded?.Invoke();
+                promise.Resolve();
             });
+            return promise;
         }
 
-        public void PrecacheSceneUI(string sceneName, Action finished)
+        public IPromise PrecacheSceneUI(string sceneName)
         {
+            Promise promise = new Promise();
             if (!_initialized)
             {
-                return;
+                promise.Fail(new Exception("UISystem is not initialized"));
+                return promise;
             }
 
             if (!_sceneList.SceneGraphs.TryGetValue(sceneName, out UISceneGraph graph))
             {
-                Debug.LogError($"There is no graph for {sceneName} scene.");
-                return;
+                promise.Fail(new Exception($"There is no graph for {sceneName} scene."));
+                return promise;
             }
 
             if (_precachedSceneGraph.ContainsKey(sceneName))
             {
-                finished?.Invoke();
-                return;
+                promise.Resolve();
+                return promise;
             }
 
-            _viewHandler.PrecacheViews(graph, () =>
-            {
-                _precachedSceneGraph.Add(sceneName, graph);
-                finished?.Invoke();
-            });
+            return _viewHandler.PrecacheViews(graph).Then(() =>
+                {
+                    _precachedSceneGraph.Add(sceneName, graph);
+                });
         }
 
-        public void ChangeSceneGraph(string sceneName, Action finished = null, bool precacheIfNot = true)
+        public IPromise ChangeSceneGraph(string sceneName, bool precacheIfNot = true)
         {
+            Promise promise = new Promise();
             if (!_initialized)
             {
-                return;
+                promise.Fail(new Exception("UISystem is not initialized"));
+                return promise;
             }
 
             if (!_sceneList.SceneGraphs.TryGetValue(sceneName, out UISceneGraph graph))
             {
-                Debug.LogError($"There is no graph for {sceneName} scene.");
-                return;
+                promise.Fail(new Exception($"There is no graph for {sceneName} scene."));
+                return promise;
             }
 
-            Action changeScene = () =>
-            {
-                _screenStack.Clear();
-                _currentScreen = null;
-                _currentGraph = graph;
+            return PrecacheSceneUI(sceneName).Then(() =>
+                {
+                    _screenStack.Clear();
+                    _currentScreen = null;
+                    _currentGraph = graph;
 
-                UIScreenNode startNode = _currentGraph.GetStartNode();
-                RequestScreen(startNode.Name, finished);
-            };
-
-            if (precacheIfNot)
-            {
-                PrecacheSceneUI(sceneName, changeScene);
-            }
-            else
-            {
-                changeScene();
-            }
+                    UIScreenNode startNode = _currentGraph.GetStartNode();
+                    RequestScreen(startNode.Name).Then(promise.Resolve);
+                });
         }
 
-        public void RequestScreen(string screenName, object arg = null, Action finished = null)
+        public IPromise RequestScreen(string screenName, object arg = null)
         {
+            Promise promise = new Promise();
             if (!_initialized)
             {
-                return;
+                promise.Fail(new Exception("UISystem is not initialized"));
+                return promise;
             }
 
             if (_currentScreen != null && _currentScreen.Name == screenName)
             {
-                return;
+                promise.Resolve();
+                return promise;
             }
 
             UIScreenNode screen = _currentGraph.GetScreenNode(screenName);
             if (screen == null)
             {
-                Debug.LogError($"There is no screen named {screenName}");
-                return;
+                promise.Fail(new Exception($"There is no screen named {screenName}"));
+                return promise;
             }
             
             List<UIElement> elements = _currentGraph.GetUIElements(screen);
-            _viewHandler.TransitionScreen(screen.Layer, elements, arg, () =>
-            {
-                while (_screenStack.Count > 0 &&
-                    _screenStack.Peek().Layer >= screen.Layer)
+            return _viewHandler.TransitionScreen(screen.Layer, elements, arg).Then(() =>
                 {
-                    _screenStack.Pop();
-                }
+                    while (_screenStack.Count > 0 &&
+                        _screenStack.Peek().Layer >= screen.Layer)
+                    {
+                        _screenStack.Pop();
+                    }
 
-                _screenStack.Push(screen);
-                _currentScreen = _currentGraph.GetScreenNode(screenName);
-
-                finished?.Invoke();
-            });
+                    _screenStack.Push(screen);
+                    _currentScreen = _currentGraph.GetScreenNode(screenName);
+                });
         }
 
-        public void RequestBackTransition(object arg = null, Action finished = null)
+        public IPromise RequestBackTransition(object arg = null)
         {
             if (_currentScreen == null)
             {
-                return;
+                return new Promise();
             }
 
-            RequestScreen(_currentScreen.BackTransitionNode, arg, finished);
+            return RequestScreen(_currentScreen.BackTransitionNode, arg);
         }
 
-        public void RequestPreviousScreen(object arg = null, Action finished = null)
+        public IPromise RequestPreviousScreen(object arg = null)
         {
             if (!_initialized || _currentScreen == null)
             {
-                return;
+                return new Promise();
             }
 
             if (_screenStack.Count <= 1)
             {
-                return;
+                return new Promise();
             }
 
             _screenStack.Pop();
-            RequestScreen(_screenStack.Peek().Name, arg, finished);
+            return RequestScreen(_screenStack.Peek().Name, arg);
         }
 
         public void ClearPrecachedViews(string sceneNameToRemove)
