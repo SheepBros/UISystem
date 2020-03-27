@@ -1,20 +1,20 @@
-﻿using System;
+﻿using SB.Async;
 
 namespace SB.UI
 {
     public interface IUIController
     {
-        void Load(Action loaded);
+        IPromise Load();
 
-        void PrecacheSceneUI(string sceneName, Action finished);
+        IPromise PrecacheSceneUI(string sceneName);
 
-        void ChangeSceneGraph(string sceneName, Action finished = null, bool precacheIfNot = true);
+        IPromise ChangeSceneGraph(string sceneName, bool precacheIfNot = true);
 
-        void RequestScreen(string screenName, object arg = null, Action finished = null);
+        IPromise RequestScreen(string screenName, object arg = null);
 
-        void RequestBackTransition(object arg = null, Action finished = null);
+        IPromise RequestBackTransition(object arg = null);
 
-        void RequestPreviousScreen(object arg = null, Action finished = null);
+        IPromise RequestPreviousScreen(object arg = null);
 
         void ClearPrecachedViews(string sceneNameToRemove);
     }
