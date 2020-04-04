@@ -8,17 +8,6 @@ namespace SB.UI
     public interface IUIController
     {
         /// <summary>
-        /// Loads scene graph list data.
-        /// </summary>
-        IPromise Load();
-
-        /// <summary>
-        /// Pre-caches UI elements of the scene graph.
-        /// </summary>
-        /// <param name="sceneName">The scene graph name to pre-cache.</param>
-        IPromise PrecacheSceneUI(string sceneName);
-
-        /// <summary>
         /// Change a scene graph.
         /// </summary>
         /// <param name="sceneName">The scene graph name to load.</param>
@@ -43,11 +32,5 @@ namespace SB.UI
         /// </summary>
         /// <param name="arg">The arguments to send to UI elements of the previous screen.</param>
         IPromise RequestPreviousScreen(object arg = null);
-
-        /// <summary>
-        /// Clear UI elements of the scene graph.
-        /// </summary>
-        /// <param name="sceneNameToRemove">The scene graph name to clear.</param>
-        void ClearPrecachedViews(string sceneNameToRemove);
     }
 }
