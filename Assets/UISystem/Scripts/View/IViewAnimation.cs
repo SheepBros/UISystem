@@ -2,6 +2,9 @@
 
 namespace SB.UI
 {
+    /// <summary>
+    /// UI animation interface.
+    /// </summary>
     public interface IViewAnimation
     {
         void Animate(Action finished);

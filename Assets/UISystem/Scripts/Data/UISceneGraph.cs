@@ -3,6 +3,10 @@ using System.Collections.Generic;
 
 namespace SB.UI
 {
+    /// <summary>
+    /// Scene graph data for the certain unity.
+    /// It has data information about how the scene consists.
+    /// </summary>
     [Serializable]
     public class UISceneGraph
     {
@@ -14,6 +18,7 @@ namespace SB.UI
 
         public Dictionary<string, UIElement> UIElements { get; set; }
 
+        [NonSerialized]
         private Dictionary<string, List<UIElement>> _cachedUIElementsForScreen = new Dictionary<string, List<UIElement>>();
 
         public void SetStartNode(string startScreenId)

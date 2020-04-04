@@ -26,6 +26,7 @@ namespace SB.UI
             _viewHandler = viewHandler;
         }
 
+        /// <inheritdoc cref="IUIController.Load"/>
         public IPromise Load()
         {
             Promise promise = new Promise();
@@ -38,6 +39,7 @@ namespace SB.UI
             return promise;
         }
 
+        /// <inheritdoc cref="IUIController.PrecacheSceneUI"/>
         public IPromise PrecacheSceneUI(string sceneName)
         {
             Promise promise = new Promise();
@@ -65,6 +67,7 @@ namespace SB.UI
                 });
         }
 
+        /// <inheritdoc cref="IUIController.ChangeSceneGraph"/>
         public IPromise ChangeSceneGraph(string sceneName, bool precacheIfNot = true)
         {
             Promise promise = new Promise();
@@ -91,6 +94,7 @@ namespace SB.UI
                 });
         }
 
+        /// <inheritdoc cref="IUIController.RequestScreen"/>
         public IPromise RequestScreen(string screenName, object arg = null)
         {
             Promise promise = new Promise();
@@ -127,6 +131,7 @@ namespace SB.UI
                 });
         }
 
+        /// <inheritdoc cref="IUIController.RequestScreen"/>
         public IPromise RequestBackTransition(object arg = null)
         {
             if (_currentScreen == null)
@@ -137,6 +142,7 @@ namespace SB.UI
             return RequestScreen(_currentScreen.BackTransitionNode, arg);
         }
 
+        /// <inheritdoc cref="IUIController.RequestPreviousScreen"/>
         public IPromise RequestPreviousScreen(object arg = null)
         {
             if (!_initialized || _currentScreen == null)
@@ -153,6 +159,7 @@ namespace SB.UI
             return RequestScreen(_screenStack.Peek().Name, arg);
         }
 
+        /// <inheritdoc cref="IUIController.ClearPrecachedViews"/>
         public void ClearPrecachedViews(string sceneNameToRemove)
         {
             if (!_sceneList.SceneGraphs.TryGetValue(sceneNameToRemove, out UISceneGraph graph))

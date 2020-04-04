@@ -3,6 +3,9 @@ using System.Collections.Generic;
 
 namespace SB.UI
 {
+    /// <summary>
+    /// UI node class that contains configurations for the screen.
+    /// </summary>
     [Serializable]
     public class UIScreenNode
     {

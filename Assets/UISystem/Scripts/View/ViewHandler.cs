@@ -65,6 +65,7 @@ namespace SB.UI
             _assetManager = assetManager;
         }
 
+        /// <inheritdoc cref="IViewHandler.PrecacheViews"/>
         public IPromise PrecacheViews(UISceneGraph sceneGraph)
         {
             if (_precaching.Contains(sceneGraph))
@@ -95,6 +96,7 @@ namespace SB.UI
                 });
         }
 
+        /// <inheritdoc cref="IViewHandler.ClearCachedViews"/>
         public void ClearCachedViews(List<UIElement> uiListToRemove)
         {
             for (int i = 0; i < uiListToRemove.Count; ++i)
@@ -110,6 +112,7 @@ namespace SB.UI
             }
         }
 
+        /// <inheritdoc cref="IViewHandler.TransitionScreen"/>
         public IPromise TransitionScreen(int layer, List<UIElement> elements, object arg)
         {
             Promise promise = new Promise();
