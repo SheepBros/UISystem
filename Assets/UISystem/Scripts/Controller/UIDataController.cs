@@ -6,6 +6,8 @@ namespace SB.UI
 {
     public class UIDataController : IUIDataController
     {
+        private IUIDataIOController _uiDataIOController;
+
         private IViewHandler _viewHandler;
 
         private UISceneList _sceneList;
@@ -14,8 +16,9 @@ namespace SB.UI
 
         private bool _initialized;
 
-        public UIDataController(IViewHandler viewHandler)
+        public UIDataController(IUIDataIOController uiDataIOController, IViewHandler viewHandler)
         {
+            _uiDataIOController = uiDataIOController;
             _viewHandler = viewHandler;
         }
 
@@ -23,7 +26,7 @@ namespace SB.UI
         public IPromise Load()
         {
             Promise promise = new Promise();
-            UIDataIOUtil.Load((data) =>
+            _uiDataIOController.Load().Then((data) =>
             {
                 _sceneList = data;
                 _initialized = true;
